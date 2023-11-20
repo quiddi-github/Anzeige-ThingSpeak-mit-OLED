@@ -1,6 +1,8 @@
 "# Anzeige-ThingSpeak-mit-OLED" 
 
-
+Stand: 20.11.2023\
+Es wurde eine Uhrzeitanzeige hinzugefügt. Außerdem zeigt das O-LED Display ganz unten die letzte Uploadzeit von ThingSpeak an. Als Bibliothek muss NTP von Stefan Staub installiert werden. Außerdem wurde ein Bild hinzugefügt.\
+\
 Stand: 17.11.2023\
 \
 Dies ist eine Anzeige mit einem Arduino-Board mit integriertem O-LED Bilschirm. Es holt von ThingSpeak die Daten von, welche von einem Temperatursensor zuvor hochgeladen wurden, und zeigt diese an. Dies kann somit als Anzeige für eine Ausentemperatur verwendet werden.\

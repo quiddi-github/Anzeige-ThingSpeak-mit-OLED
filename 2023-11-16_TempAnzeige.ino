@@ -1,4 +1,8 @@
 
+#include <NTP.h>
+#include <WiFiUdp.h>
+WiFiUDP wifiUdp;
+NTP ntp(wifiUdp);
 
 // Anfang: Bibs udn Konfig für W-Lan ESP8266
 #include <ESP8266WebServer.h> // <WebServer.h> for ESP32
@@ -19,7 +23,8 @@ SSD1306Wire display(0x3c,  SDA_PIN, SCL_PIN);   // I2C address of display
 //Ende: Bibs und Konfig für O-LED
 
 #include <ThingSpeak.h>  // ThinkSpeak Bib zum lesen der Temperatur
-unsigned long myChannelNumber = Hier ThingSpeak Channel Nr eintragen;         
+unsigned long myChannelNumber = Hier ThingSpeak Channel Nr eintragen;  ; ;          //ThingSpeak Channel ID
+//const char * myReadAPIKey = "4EIKTBH7FWS2OUBV";
 WiFiClient  client;
 
 // Variablen für Systemzeiten
@@ -77,6 +82,20 @@ display.clear();
 //Ende: W-Lan
   
   server.begin();
+// Für Zeit
+    /*
+    Zeitzone
+    CEST: Central European Summertime
+    Beginn europäische Sommerzeit letzter Sonntag im März 2 Uhr GMT + 2 Stunden
+  */
+  ntp.ruleDST("CEST", Last, Sun, Mar, 2, 120);
+
+  // CET: Central European Time
+  // Beginn Normalzeit letzter Sonntag im Oktober 3 Uhr GMT + 1 Stunde
+  ntp.ruleSTD("CET", Last, Sun, Oct, 3, 60);
+
+  // ntp starten
+  ntp.begin();
 }
   
 void loop(){
@@ -84,15 +103,28 @@ AktuelleZeit = millis();
 if(LetzterLauf > AktuelleZeit){ // Sollte aus unerklärlichen Gründen LetzterLauf größer als AktuelleZeit sein, so setzen wir die Variable zurück
   LetzterLauf = AktuelleZeit;
 }
+Serial.println(ThingSpeak.readCreatedAt(myChannelNumber));
+//String LastCreated = ThingSpeak.readCreatedAt(myChannelNumber);
+//int str_len = LastCreated.length() + 1; 
+//char char_array[str_len];
+//LastCreated.toCharArray(char_array, str_len);
+//Serial.println(char_array[12] + char_array[13]);
 
 if ( (AktuelleZeit - LetzterLauf) > 10000){ //alle 10 Sekunden die Daten aktualisieren
 float temperatureInF = ThingSpeak.readFloatField(myChannelNumber, 1);
+String LastCreated = ThingSpeak.readCreatedAt(myChannelNumber);
+ntp.update();
+Serial.println("Tag des Monats" + ntp.day());
 String stringOne = String(temperatureInF, 2);
+String stringTwo = String(ntp.day()) + "." + String(ntp.month()) + "." + String(ntp.year()) + " " + String(ntp.hours()) + ":" + String(ntp.minutes());
 Serial.println(temperatureInF);
-display.clear();  
+display.clear();
 display.setFont(ArialMT_Plain_16);                        // initializing the font type and size
-display.drawString(0, 15, "Temp. Stuttgart");               //(  row number , column number, "text")
-display.drawString(0, 35, " " + stringOne + "°C");
+display.drawString(0, 0, stringTwo);
+display.drawString(0, 14, "Temp. Stuttgart");               //(  row number , column number, "text")
+display.drawString(0, 34, " " + stringOne + "°C");
+display.setFont(ArialMT_Plain_10); 
+display.drawString(0,54, LastCreated);
 display.display(); 
 LetzterLauf = AktuelleZeit;
 }
